@@ -110,7 +110,11 @@ client.on('messageCreate', async (message) => {
                 console.log(nick);
                 if(!nick)
                 {
-                  return message.channel.send('verification failed');
+                  nick = message.member.displayName;
+                    if(!nick)
+                    {
+                      return console.log('null displayname'.concat(' ', message.member.user.username));
+                    }
                 }
                 if(isnetidvalid(nick))
                 {
@@ -134,7 +138,11 @@ client.on('messageCreate', async (message) => {
                   var nick = member.nickname;
                   if(!nick)
                   {
-                    return console.log('null nick'.concat(' ', member.displayName));
+                    nick = member.displayName;
+                    if(!nick)
+                    {
+                      return console.log('null displayname'.concat(' ', member.user.username));
+                    }
                   }
                   if(isnetidvalid(nick))
                   {
