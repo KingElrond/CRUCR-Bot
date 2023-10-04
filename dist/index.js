@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const nodemailer = require('nodemailer');
 const tslib_1 = require("tslib");
 const discord_js_1 = require("discord.js");
 const config_1 = tslib_1.__importDefault(require("./config"));
@@ -18,6 +19,41 @@ const client = new discord_js_1.Client({
 
 function isLetter(c) {
   return c.toLowerCase() != c.toUpperCase();
+}
+
+function parsenetid(nick) {
+  if(isnetidvalid(nick))
+  {
+    if( (!(nick.indexOf('-') > -1) && !(nick.indexOf('|') > -1) ) )
+                  {
+                    return console.log('not formatted');
+                  }
+                  var partsArray;
+                  if(nick.indexOf('-') > -1)
+                  {
+                    partsArray = nick.split('-');
+                  } else if(nick.indexOf('|') > -1)
+                  {
+                    partsArray = nick.split('|');
+                  } else
+                  {
+                    return console.log('how tf did i get here');
+                  }
+                  
+                const netid = partsArray[1];
+                var netid_trimmed = netid;
+                if(netid_trimmed.at(0) == ' ')
+                {
+                  netid_trimmed = netid_trimmed.substring(1);
+                }
+                while(netid_trimmed.at(netid_trimmed.length-1) == ' ')
+                  {
+                    netid_trimmed = netid_trimmed.substring(0, netid_trimmed.length-1);
+                  }
+    return netid_trimmed;
+  } else {
+    return 'invalid';
+  }
 }
 
 function isnetidvalid(nick) {
@@ -76,7 +112,29 @@ function isnetidvalid(nick) {
                 }
 }
 
-
+function verifyEmail(netid) 
+{
+  var transporter = nodemailer.createTransport({
+  service: env.ORG_EMAIL_SERV,
+  auth: {
+    user: env.ORG_EMAIL,
+    pass: env.ORG_EMAIL_PASS
+  }
+});
+  var mailOptions = {
+  from: env.ORG_EMAIL,
+  to: netid.concat('@ucr.edu'),
+  subject: 'Verification email for HCR',
+  text: 'TESTING TESTING 123'
+};
+  transporter.sendMail(mailOptions, function(error, info){
+  if (error) {
+    console.log(error);
+  } else {
+    console.log('Email sent: ' + info.response);
+  }
+});
+}
 
 
 client.on('ready', () => {
@@ -155,6 +213,28 @@ client.on('messageCreate', async (message) => {
                 }),
                 );
                 message.channel.send('done');
+                break;
+              case 'verify_by_email':
+                const nick = message.member.nickname;
+                console.log(nick);
+                if(!nick)
+                {
+                  nick = message.member.displayName;
+                    if(!nick)
+                    {
+                      return console.log('null displayname'.concat(' ', message.member.user.username));
+                    }
+                }
+                if(isnetidvalid(nick))
+                {
+                  message.channel.send('netid verification successful');
+                  let role = message.guild.roles.cache.find(r => r.name === "Verified");
+                  var netid = parsenetid(nick);
+                  verifyEmail(netid);
+            message.member.roles.add(role).catch(console.error);
+                } else {
+                  message.channel.send('verification failed');
+                }
                 break;
         }
     }
