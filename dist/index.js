@@ -21,11 +21,22 @@ function isLetter(c) {
 }
 
 function isnetidvalid(nick) {
-  if(!(nick.indexOf('-') > -1))
+  if( (!(nick.indexOf('-') > -1) && !(nick.indexOf('|') > -1) ) )
                   {
-                    return console.log('oops');
+                    return console.log('not formatted');
                   }
-                   var partsArray = nick.split('-');
+                  var partsArray;
+                  if(nick.indexOf('-') > -1)
+                  {
+                    partsArray = nick.split('-');
+                  } else if(nick.indexOf('|') > -1)
+                  {
+                    partsArray = nick.split('|');
+                  } else
+                  {
+                    return console.log('how tf did i get here');
+                  }
+                  
                 const netid = partsArray[1];
                 if(netid.length >= 7)
                 {
@@ -40,18 +51,17 @@ function isnetidvalid(nick) {
                   if(!isLetter(netid.at(upper-1))) //to account for last names with only 3 letters
                   {
                     upper--;
-                    console.log('idk');
-                  }
-                  if(!isLetter(netid.at(upper-1))) //to account for last names with only 2 letters
+                    if(!isLetter(netid.at(upper-1))) //to account for last names with only 2 letters
                   {
                     upper--;
-                    console.log('idk');
+                  }
+                    console.log(netid);
+                    console.log('3 or 2 letter last name');
                   }
                   for(place; place < upper; place++)
                     {
                       if(!isLetter(netid.at(place)))
                       {
-                        console.log(netid.at(place));
                         return false;
                       }
                     }
@@ -59,7 +69,6 @@ function isnetidvalid(nick) {
                     {
                       if(isLetter(netid.at(place)))
                       {
-                        console.log(netid.at(place));
                         return false;
                       }
                     }
@@ -125,13 +134,15 @@ client.on('messageCreate', async (message) => {
                   var nick = member.nickname;
                   if(!nick)
                   {
-                    return console.log('null nick');
+                    return console.log('null nick'.concat(' ', member.displayName));
                   }
                   if(isnetidvalid(nick))
                   {
-                     message.channel.send('verification successful');
+                     message.channel.send('verification successful'.concat(' ', nick));
                   let role = message.guild.roles.cache.find(r => r.name === "Verified");
                   member.roles.add(role).catch(console.error); 
+                  } else {
+                    message.channel.send('verification failed'.concat(' ', nick));
                   }
                 }),
                 );
